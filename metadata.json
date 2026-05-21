@@ -1,0 +1,6 @@
+{
+  "name": "PayNode",
+  "description": "A high-performance e-commerce platform for selling digital subscriptions, game keys, and software licenses with localized payments, RTL support, and custom dashboard settings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
