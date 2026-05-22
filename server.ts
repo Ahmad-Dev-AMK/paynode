@@ -32,6 +32,8 @@ db.exec(`
     secret_info TEXT,
     is_active INTEGER NOT NULL,
     has_warranty INTEGER NOT NULL,
+    is_best_seller INTEGER NOT NULL DEFAULT 0,
+    is_new_release INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   );
 
@@ -90,6 +92,18 @@ db.exec(`
 
 try {
   db.prepare('ALTER TABLE orders ADD COLUMN user_email TEXT').run();
+} catch (e: any) {
+  // Column might already exist
+}
+
+try {
+  db.prepare('ALTER TABLE products ADD COLUMN is_best_seller INTEGER NOT NULL DEFAULT 0').run();
+} catch (e: any) {
+  // Column might already exist
+}
+
+try {
+  db.prepare('ALTER TABLE products ADD COLUMN is_new_release INTEGER NOT NULL DEFAULT 0').run();
 } catch (e: any) {
   // Column might already exist
 }
@@ -184,19 +198,21 @@ async function startServer() {
     const mapped = products.map((p: any) => ({
       ...p,
       is_active: !!p.is_active,
-      has_warranty: !!p.has_warranty
+      has_warranty: !!p.has_warranty,
+      is_best_seller: !!p.is_best_seller,
+      is_new_release: !!p.is_new_release
     }));
     res.json(mapped);
   });
   app.post("/api/products", (req, res) => {
-    const { id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path, cost_usd, margin_usd, secret_info, is_active, has_warranty } = req.body;
+    const { id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path, cost_usd, margin_usd, secret_info, is_active, has_warranty, is_best_seller, is_new_release } = req.body;
     
     db.prepare(`
       INSERT OR REPLACE INTO products 
-      (id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path, cost_usd, margin_usd, secret_info, is_active, has_warranty, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path, cost_usd, margin_usd, secret_info, is_active, has_warranty, is_best_seller, is_new_release, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path || null, cost_usd, margin_usd, secret_info || null, is_active ? 1 : 0, has_warranty ? 1 : 0, req.body.created_at || new Date().toISOString()
+      id, category_id, title_ar, title_en, description_ar, description_en, image_type, image_path, video_type, video_path || null, cost_usd, margin_usd, secret_info || null, is_active ? 1 : 0, has_warranty ? 1 : 0, is_best_seller ? 1 : 0, is_new_release ? 1 : 0, req.body.created_at || new Date().toISOString()
     );
     res.json(req.body);
   });

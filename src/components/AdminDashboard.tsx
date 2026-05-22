@@ -77,7 +77,9 @@ export default function AdminDashboard({
     margin_usd: 0,
     secret_info: '',
     is_active: true,
-    has_warranty: true
+    has_warranty: true,
+    is_best_seller: false,
+    is_new_release: false
   });
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -252,7 +254,9 @@ export default function AdminDashboard({
         margin_usd: 0,
         secret_info: '',
         is_active: true,
-        has_warranty: true
+        has_warranty: true,
+        is_best_seller: false,
+        is_new_release: false
       });
 
       setSuccessMsg(lang === 'ar' ? 'تم حفظ وضبط المنتج بالنجاح!' : 'Product saved successfully!');
@@ -293,7 +297,9 @@ export default function AdminDashboard({
       margin_usd: prod.margin_usd,
       secret_info: prod.secret_info || '',
       is_active: prod.is_active,
-      has_warranty: prod.has_warranty ?? true
+      has_warranty: prod.has_warranty ?? true,
+      is_best_seller: prod.is_best_seller ?? false,
+      is_new_release: prod.is_new_release ?? false
     });
   };
 
@@ -636,7 +642,7 @@ export default function AdminDashboard({
                           </div>
                           <div className="text-right">
                             <p className="text-xs font-bold text-white">{ord.total_usd.toFixed(2)} USD</p>
-                            <p className="text-[10px] text-slate-500">{ord.total_syp.toLocaleString()} {t.syp}</p>
+                            <p className="text-[10px] text-slate-500">{ord.total_syp.toLocaleString()} {lang === 'ar' ? 'ل.س' : 'SYP'}</p>
                           </div>
                         </div>
                       ))}
@@ -1043,6 +1049,26 @@ export default function AdminDashboard({
                             />
                             <span className="font-bold text-[#32CD32]">{t.has_warranty_label}</span>
                           </label>
+
+                          <label className="flex items-center gap-2 text-xs select-none cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={prodForm.is_best_seller ?? false}
+                              onChange={(e) => setProdForm({ ...prodForm, is_best_seller: e.target.checked })}
+                              className="accent-[#FFD700] w-4 h-4"
+                            />
+                            <span className="font-bold text-[#FFD700]">{lang === 'ar' ? 'الأكثر مبيعاً 🔥' : 'Best Seller 🔥'}</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 text-xs select-none cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={prodForm.is_new_release ?? false}
+                              onChange={(e) => setProdForm({ ...prodForm, is_new_release: e.target.checked })}
+                              className="accent-[#FF5722] w-4 h-4"
+                            />
+                            <span className="font-bold text-[#FF5722]">{lang === 'ar' ? 'جديدنا 🎉' : 'New Arrival 🎉'}</span>
+                          </label>
                         </div>
 
                         <div className="flex gap-2">
@@ -1071,7 +1097,9 @@ export default function AdminDashboard({
                                   margin_usd: 0,
                                   secret_info: '',
                                   is_active: true,
-                                  has_warranty: true
+                                  has_warranty: true,
+                                  is_best_seller: false,
+                                  is_new_release: false
                                 });
                               }}
                               className="bg-slate-800 hover:bg-slate-750 text-slate-300 px-3 py-2 rounded text-xs font-semibold cursor-pointer"

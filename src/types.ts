@@ -22,6 +22,8 @@ export interface Product {
   secret_info?: string;
   is_active: boolean;
   has_warranty?: boolean;
+  is_best_seller?: boolean;
+  is_new_release?: boolean;
   created_at?: string;
 }
 

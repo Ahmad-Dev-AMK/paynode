@@ -40,6 +40,7 @@ export default function App() {
   // UI Filtering & Search parameters
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'recommended' | 'price_asc' | 'price_desc'>('recommended');
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   
   // Shopping Cart & Modals Toggles State
@@ -168,6 +169,25 @@ export default function App() {
     return matchesCategory && matchSearch;
   });
 
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'price_asc') {
+      const priceA = a.cost_usd + a.margin_usd;
+      const priceB = b.cost_usd + b.margin_usd;
+      return priceA - priceB;
+    }
+    if (sortBy === 'price_desc') {
+      const priceA = a.cost_usd + a.margin_usd;
+      const priceB = b.cost_usd + b.margin_usd;
+      return priceB - priceA;
+    }
+    if (sortBy === 'recommended') {
+      const scoreA = a.is_best_seller ? 1 : 0;
+      const scoreB = b.is_best_seller ? 1 : 0;
+      return scoreB - scoreA;
+    }
+    return 0;
+  });
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0f172a] text-slate-100" id="paynode-root-canvas">
       
@@ -249,7 +269,7 @@ export default function App() {
                 
                 <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-xl mx-auto">
                   {lang === 'ar' 
-                    ? 'متجر "باي نود" يوفر لك تفعيل آمن وسريع مع ضمان ١٠٠٪ للمنتجات والاشتراكات المشمولة بالكفالة الذهبية في سوريا وبأفضل الأسعار.'
+                    ? 'متجر "باي نود" يوفر لك تفعيل آمن وسريع مع ضمان ١٠٪ للمنتجات والاشتراكات المشمولة بالكفالة الذهبية في سوريا وبأفضل الأسعار.'
                     : 'PayNode gives you secure digital activation, with 100% warranty on all covered plans and licenses in Syrian Pounds.'}
                 </p>
               </div>
@@ -292,31 +312,110 @@ export default function App() {
 
             </section>
 
-            {/* SECTION B: Dynamic Controls, Categorization Tabs & Search layout */}
-            <section className="space-y-4">
-              
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 select-none">
-                <h2 className="text-lg font-bold text-white tracking-tight uppercase flex items-center gap-2">
-                  <ListFilter size={16} className="text-[#00E5FF]" />
-                  <span>{t.by_category}</span>
-                </h2>
+            {/* 1. Best Sellers Section */}
+            {products.filter(p => p.is_active && p.is_best_seller).length > 0 && (
+              <section className="space-y-4 pt-4">
+                <div className="flex items-center gap-2 border-b border-slate-850 pb-2">
+                  <span className="text-amber-400 animate-pulse text-base">🔥</span>
+                  <h3 className="text-sm md:text-base font-extrabold text-[#FFD700] tracking-wide uppercase">
+                    {lang === 'ar' ? 'العروض الأكثر مبيعاً' : 'Best Sellers'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.filter(p => p.is_active && p.is_best_seller).map(prod => {
+                    const cartItem = cart.find(i => i.product.id === prod.id);
+                    const cartQty = cartItem ? cartItem.quantity : 0;
+                    return (
+                      <ProductCard
+                        key={`best-${prod.id}`}
+                        product={prod}
+                        lang={lang}
+                        currency={currency}
+                        exchangeRate={settings.usd_to_syp_rate}
+                        onAddToCart={handleAddToCart}
+                        onViewDetails={(p) => setActiveProduct(p)}
+                        cartQty={cartQty}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
-                {/* Fluid quick search bar */}
-                <div className="relative w-full md:w-80">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onInput={(e) => dataService.logAnalytics('search')}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t.search_placeholder}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-[#00E5FF] pl-9 pr-4 py-2 rounded-xl text-xs text-white outline-none font-medium placeholder-slate-500"
-                  />
+            {/* 2. New Arrivals Section */}
+            {products.filter(p => p.is_active && p.is_new_release).length > 0 && (
+              <section className="space-y-4 pt-4">
+                <div className="flex items-center gap-2 border-b border-slate-850 pb-2">
+                  <span className="text-orange-500 animate-bounce text-base">🎉</span>
+                  <h3 className="text-sm md:text-base font-extrabold text-orange-500 tracking-wide uppercase">
+                    {lang === 'ar' ? 'جديدنا وأحدث الإضافات' : 'New Arrivals'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.filter(p => p.is_active && p.is_new_release).map(prod => {
+                    const cartItem = cart.find(i => i.product.id === prod.id);
+                    const cartQty = cartItem ? cartItem.quantity : 0;
+                    return (
+                      <ProductCard
+                        key={`new-${prod.id}`}
+                        product={prod}
+                        lang={lang}
+                        currency={currency}
+                        exchangeRate={settings.usd_to_syp_rate}
+                        onAddToCart={handleAddToCart}
+                        onViewDetails={(p) => setActiveProduct(p)}
+                        cartQty={cartQty}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* 3. Browse categories & explore section */}
+            <section className="space-y-6 pt-4">
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-slate-850 pb-3 select-none">
+                <div className="space-y-1">
+                  <h2 className="text-sm md:text-base font-extrabold text-white tracking-tight uppercase flex items-center gap-2">
+                    <ListFilter size={18} className="text-[#00E5FF]" />
+                    <span>{lang === 'ar' ? 'تصفح الأقسام والتصنيفات' : 'Browse Categories'}</span>
+                  </h2>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  {/* Sorting dropdown */}
+                  <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 h-10 shrink-0">
+                    <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">
+                      {lang === 'ar' ? 'الترتيب حسب:' : 'Sort By:'}
+                    </span>
+                    <select
+                      value={sortBy}
+                      onChange={(e: any) => setSortBy(e.target.value)}
+                      className="bg-transparent border-none text-xs text-white font-bold outline-none cursor-pointer focus:ring-0"
+                    >
+                      <option className="bg-slate-950 text-white" value="recommended">{lang === 'ar' ? 'الأكثر مبيعاً أولاً' : 'Best Sellers'}</option>
+                      <option className="bg-slate-950 text-white" value="price_asc">{lang === 'ar' ? 'السعر: من الأرخص للأغلى' : 'Price: Low to High'}</option>
+                      <option className="bg-slate-950 text-white" value="price_desc">{lang === 'ar' ? 'السعر: من الأعلى للأرخص' : 'Price: High to Low'}</option>
+                    </select>
+                  </div>
+
+                  {/* Fluid quick search bar */}
+                  <div className="relative w-full sm:w-64 h-10">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onInput={(e) => dataService.logAnalytics('search')}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t.search_placeholder}
+                      className="w-full h-full bg-slate-900 border border-slate-800 focus:border-[#00E5FF] pl-9 pr-4 py-2 rounded-xl text-xs text-white outline-none font-medium placeholder-slate-500"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Tab lists */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none select-none">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none select-none">
                 {/* ALL */}
                 <button
                   id="category-filter-all"
@@ -350,22 +449,14 @@ export default function App() {
                 ))}
               </div>
 
-            </section>
-
-            {/* SECTION C: Store Listings Grid */}
-            <section className="space-y-4">
-              
-              <div className="border-b border-slate-850 pb-2">
-                <h3 className="text-sm font-bold text-slate-450 uppercase tracking-widest">{t.top_sellers}</h3>
-              </div>
-
+              {/* Grid content */}
               {isLoading ? (
                 /* Loading states fallback card */
                 <div className="py-24 text-center space-y-3 select-none">
                   <RefreshCw className="animate-spin text-[#00E5FF] mx-auto" size={32} />
-                  <p className="text-xs text-slate-500 font-mono tracking-wide">CONNECTING TO GATEWAY NODE...</p>
+                  <p className="text-xs text-slate-550 font-mono tracking-wide">CONNECTING TO GATEWAY NODE...</p>
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : sortedProducts.length === 0 ? (
                 /* Empty list */
                 <div className="py-20 text-center select-none bg-slate-900/10 border border-slate-850 p-8 rounded-2xl">
                   <span className="text-xs font-bold text-slate-400">
@@ -378,7 +469,7 @@ export default function App() {
               ) : (
                 /* Layout Cards grid */
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProducts.map(prod => {
+                  {sortedProducts.map(prod => {
                     const cartItem = cart.find(i => i.product.id === prod.id);
                     const cartQty = cartItem ? cartItem.quantity : 0;
 
@@ -397,7 +488,6 @@ export default function App() {
                   })}
                 </div>
               )}
-
             </section>
           </>
         )}
