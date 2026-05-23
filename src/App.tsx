@@ -506,7 +506,7 @@ export default function App() {
                 <Smartphone size={14} />
                 <span>WhatsApp</span>
               </a>
-              <a href="https://t.me/AMK114" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-2 bg-[#0088cc]/10 text-[#0088cc] hover:bg-[#0088cc]/20 border border-[#0088cc]/20 rounded-lg transition-colors font-bold">
+              <a href="https://t.me/amk1281" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-2 bg-[#0088cc]/10 text-[#0088cc] hover:bg-[#0088cc]/20 border border-[#0088cc]/20 rounded-lg transition-colors font-bold">
                 <Globe size={14} />
                 <span>Telegram</span>
               </a>
@@ -539,7 +539,7 @@ export default function App() {
             </div>
             <div className="text-[10px] text-slate-500">
               {lang === 'ar' ? 'عمل هذا الموقع المبرمج تيلجرام ' : 'Website created by developer on Telegram '}
-              <a href="https://t.me/AMK114" target="_blank" rel="noreferrer" className="text-[#0088cc] hover:underline font-bold">@AMK114</a>
+              <a href="https://t.me/amk1281" target="_blank" rel="noreferrer" className="text-[#0088cc] hover:underline font-bold">@amk1281</a>
             </div>
           </div>
         </div>

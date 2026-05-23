@@ -130,13 +130,21 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // API Routes
   
   // -- Auth & Users
   app.post("/api/auth/login", (req, res) => {
     const { email, password } = req.body;
+    const exists = db.prepare('SELECT id, password FROM users WHERE email = ?').get(email) as any;
+    if (!exists) {
+      return res.status(401).json({ success: false, error: 'email_not_found' });
+    }
+    if (exists.password !== password) {
+      return res.status(401).json({ success: false, error: 'incorrect_password' });
+    }
     const user = db.prepare('SELECT id, email, role FROM users WHERE email = ? AND password = ?').get(email, password);
     if (user) {
       res.json({ success: true, user });
@@ -154,7 +162,7 @@ async function startServer() {
       res.json({ success: true, email });
     } catch (e: any) {
       if (e.message.includes('UNIQUE constraint')) {
-        res.status(400).json({ success: false, error: 'Email already exists' });
+        res.status(400).json({ success: false, error: 'email_already_exists' });
       } else {
         res.status(500).json({ success: false, error: 'Registration failed' });
       }
@@ -182,9 +190,13 @@ async function startServer() {
     res.json(cats);
   });
   app.post("/api/categories", (req, res) => {
-    const { id, name_ar, name_en, slug } = req.body;
+    let { id, name_ar, name_en, slug } = req.body;
+    const existing = db.prepare('SELECT id FROM categories WHERE slug = ? AND id != ?').get(slug, id) as any;
+    if (existing) {
+      slug = slug + '-' + Date.now();
+    }
     db.prepare('INSERT OR REPLACE INTO categories (id, name_ar, name_en, slug) VALUES (?, ?, ?, ?)').run(id, name_ar, name_en, slug);
-    res.json(req.body);
+    res.json({ id, name_ar, name_en, slug });
   });
   app.delete("/api/categories/:id", (req, res) => {
     db.prepare('DELETE FROM categories WHERE id = ?').run(req.params.id);

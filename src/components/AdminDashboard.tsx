@@ -133,6 +133,36 @@ export default function AdminDashboard({
     setLoginError('');
     setIsAuthenticating(true);
 
+    const getFriendlyError = (errKey: string) => {
+      const isAr = lang === 'ar';
+      if (errKey === 'email_not_found') {
+        return isAr 
+          ? 'البريد الإلكتروني هذا غير مسجل لدينا، يرجى إنشاء حساب جديد بالضغط بالأسفل.' 
+          : 'This email is not registered. Please sign up for a new account.';
+      }
+      if (errKey === 'incorrect_password') {
+        return isAr 
+          ? 'كلمة المرور خاطئة تماماً! يرجى التأكد وإعادة المحاولة.' 
+          : 'Incorrect password! Please check and try again.';
+      }
+      if (errKey === 'email_already_exists') {
+        return isAr 
+          ? 'هذا البريد الإلكتروني مسجل لدينا بالفعل! يرجى تسجيل الدخول بدلاً من ذلك.' 
+          : 'This email is already registered! Please sign in instead.';
+      }
+      if (errKey === 'Invalid credentials') {
+        return isAr 
+          ? 'بيانات الاعتماد خاطئة أو الحساب غير متوفر.' 
+          : 'Invalid credentials. Please verify and try again.';
+      }
+      if (errKey.includes('API Error:')) {
+        return isAr
+          ? 'تعذر الاتصال بقاعدة البيانات. يرجى التحقق من اتصالك والمحاولة مجدداً.'
+          : 'Could not establish connection to the database. Please check your network and try again.';
+      }
+      return errKey;
+    };
+
     try {
       if (isSignup) {
         const res = await dataService.register(email, password);
@@ -149,7 +179,7 @@ export default function AdminDashboard({
              onClose();
           }
         } else {
-          setLoginError(res.error || 'Registration failed');
+          setLoginError(getFriendlyError(res.error || 'Registration failed'));
         }
       } else {
         const res = await dataService.login(email, password);
@@ -165,11 +195,11 @@ export default function AdminDashboard({
           setLoginError('');
           loadAdminData();
         } else {
-          setLoginError(res.error || t.login_error);
+          setLoginError(getFriendlyError(res.error || t.login_error));
         }
       }
     } catch (err: any) {
-      setLoginError(err.message || t.login_error);
+      setLoginError(getFriendlyError(err.message || t.login_error));
     } finally {
       setIsAuthenticating(false);
     }
@@ -228,6 +258,19 @@ export default function AdminDashboard({
       name_en: cat.name_en,
       slug: cat.slug
     });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProdForm(prev => ({ ...prev, image_path: reader.result as string, image_type: 'url' }));
+      };
+      reader.readAsDataURL(file);
+      // Reset so same file can be selected again
+      e.target.value = '';
+    }
   };
 
   // PRODUCT OPERATIONS
@@ -373,9 +416,9 @@ export default function AdminDashboard({
   }, {} as Record<string, number>);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md p-4 md:p-8 animate-fade-in flex items-center justify-center">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md p-4 animate-fade-in flex items-center justify-center">
       <div 
-        className="w-full max-w-6xl bg-slate-900 border border-slate-800 rounded-2xl flex flex-col md:flex-row h-[90vh] md:h-[80vh] overflow-hidden shadow-2xl"
+        className="w-full max-w-none bg-slate-900 border border-slate-800 rounded-2xl flex flex-col md:flex-row h-full overflow-hidden shadow-2xl"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
       >
         
@@ -835,8 +878,8 @@ export default function AdminDashboard({
                     </form>
 
                     {/* Categories Listing table */}
-                    <div className="border border-slate-800/80 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs text-slate-300" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="border border-slate-800/80 rounded-xl overflow-auto max-h-[30vh]">
+                      <table className="w-full text-left text-xs text-slate-300 min-w-[500px]" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                         <thead className="bg-slate-950 text-slate-400 text-[10px] uppercase font-bold tracking-wide border-b border-slate-800">
                           <tr>
                             <th className="p-3 text-right">{lang === 'ar' ? 'اسم القسم (عربي / English)' : 'Category Name'}</th>
@@ -1003,13 +1046,25 @@ export default function AdminDashboard({
                           <label className="text-[10px] font-bold text-slate-400 block pb-1">
                             {t.media_url_label}
                           </label>
-                          <input
-                            type="text"
-                            required
-                            value={prodForm.image_path}
-                            onChange={(e) => setProdForm({ ...prodForm, image_path: e.target.value })}
-                            className="w-full bg-slate-900 border border-slate-850 text-xs text-white p-2 rounded font-mono"
-                          />
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              required
+                              value={prodForm.image_path}
+                              onChange={(e) => setProdForm({ ...prodForm, image_path: e.target.value })}
+                              className="w-full bg-slate-900 border border-slate-850 text-xs text-white p-2 rounded font-mono"
+                              placeholder="URL or Upload Base64"
+                            />
+                            <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3 py-2 rounded text-[10px] whitespace-nowrap flex items-center shrink-0 transition-colors">
+                              {lang === 'ar' ? 'رفع صورة' : 'Upload Image'}
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleImageUpload} 
+                              />
+                            </label>
+                          </div>
                         </div>
 
                         {/* Secret supplier box */}
@@ -1113,8 +1168,8 @@ export default function AdminDashboard({
                     </form>
 
                     {/* Products listings table */}
-                    <div className="border border-slate-800 rounded-xl overflow-hidden max-h-[30vh] overflow-y-auto">
-                      <table className="w-full text-left text-xs text-slate-300" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="border border-slate-800 rounded-xl overflow-auto max-h-[30vh]">
+                      <table className="w-full text-left text-xs text-slate-300 min-w-[800px]" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                         <thead className="bg-slate-950 text-slate-400 text-[10px] uppercase font-bold tracking-wide border-b border-slate-800">
                           <tr>
                             <th className="p-3 text-right">{lang === 'ar' ? 'معلومات وعناوين المنتج' : 'Product Information'}</th>
@@ -1189,8 +1244,8 @@ export default function AdminDashboard({
                     <p className="text-[10px] text-slate-400">View customer invoice receipts, verify receipts, and launch conversational follow-ups on WhatsApp.</p>
                   </div>
 
-                  <div className="border border-slate-800 rounded-xl overflow-hidden max-h-[50vh] overflow-y-auto">
-                    <table className="w-full text-left text-xs text-slate-300" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                  <div className="border border-slate-800 rounded-xl overflow-auto max-h-[50vh]">
+                    <table className="w-full text-left text-xs text-slate-300 min-w-[700px]" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
                       <thead className="bg-slate-950 text-slate-400 text-[10px] uppercase font-bold tracking-wide border-b border-slate-800">
                         <tr>
                           <th className="p-3 text-right">{t.order_id}</th>

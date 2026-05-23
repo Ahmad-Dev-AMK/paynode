@@ -15,7 +15,18 @@ const apiCall = async (endpoint: string, method: string = 'GET', body?: any) => 
     options.body = JSON.stringify(body);
   }
   const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
+  if (!res.ok) {
+    let errorMsg = `API Error: ${res.statusText}`;
+    try {
+      const data = await res.json();
+      if (data && data.error) {
+        errorMsg = data.error;
+      }
+    } catch (e) {
+      // Response body not JSON or couldn't parse, fallback to default error
+    }
+    throw new Error(errorMsg);
+  }
   return res.json();
 };
 

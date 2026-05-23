@@ -166,7 +166,7 @@ Please send me the transfer details or wallet number to complete the payment.`;
 
       // Default Syrian administrator phone & telegram handles (Changeable)
       const supportNumber = '963939739157';
-      const telegramUsername = 'AMK114';
+      const telegramUsername = 'amk1281';
 
       // 4. Client Redirection
       let targetUrl = '';
