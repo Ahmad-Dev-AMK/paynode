@@ -12,15 +12,20 @@
   --color-paynode-cyan: #00E5FF;
   --color-paynode-cyan-hover: #00B8D4;
   --color-paynode-lime: #32CD32;
+  
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Custom Reset and High Contrast scrollbar styling for Low Bandwidth Optimization */
-html, body {
-  background-color: #0f172a;
-  color: #f1f5f9;
-  font-family: var(--font-sans);
-  overflow-x: hidden;
-  scroll-behavior: smooth;
+@layer base {
+  html, body {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
 }
 
 /* Scrollbar styling */
@@ -47,6 +52,18 @@ html, body {
   font-family: "Cairo", "Poppins", sans-serif;
 }
 
+/* Skeleton Loading Animations */
+@keyframes skeleton-loading {
+  0% { background-color: #0A2540; }
+  50% { background-color: #1e293b; }
+  100% { background-color: #0A2540; }
+}
+
+.animate-skeleton {
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
 /* Micro glow effects */
 .paynode-glow {
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
@@ -67,4 +84,81 @@ html, body {
   background: rgba(10, 37, 64, 0.4);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(0, 229, 255, 0.1);
+}
+
+/* Dashboard UI helpers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── SKELETON SHIMMER ─────────────────────────────────── */
+@keyframes pn-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.pn-skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #263248 50%, #1e293b 75%);
+  background-size: 800px 100%;
+  animation: pn-shimmer 1.6s infinite linear;
+}
+
+/* ─── FADE-IN ANIMATION ────────────────────────────────── */
+@keyframes pn-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pn-fade-in { animation: pn-fade-in 0.4s ease forwards; }
+
+/* ─── STAGGERED CARD ENTRANCE ──────────────────────────── */
+.pn-card-enter { animation: pn-fade-in 0.35s ease forwards; opacity: 0; }
+.pn-card-enter:nth-child(1) { animation-delay: 0.05s; }
+.pn-card-enter:nth-child(2) { animation-delay: 0.10s; }
+.pn-card-enter:nth-child(3) { animation-delay: 0.15s; }
+.pn-card-enter:nth-child(4) { animation-delay: 0.20s; }
+.pn-card-enter:nth-child(5) { animation-delay: 0.25s; }
+.pn-card-enter:nth-child(6) { animation-delay: 0.30s; }
+.pn-card-enter:nth-child(7) { animation-delay: 0.35s; }
+.pn-card-enter:nth-child(8) { animation-delay: 0.40s; }
+.pn-card-enter:nth-child(9) { animation-delay: 0.45s; }
+
+/* ─── LAZY IMAGE TRANSITION ────────────────────────────── */
+img.pn-lazy { opacity: 0; transition: opacity 0.4s ease; }
+img.pn-lazy.loaded { opacity: 1; }
+
+/* ─── DASHBOARD STAT CARDS ─────────────────────────────── */
+.pn-stat-card {
+  background: linear-gradient(135deg, #0f172a 0%, #0A2540 100%);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 14px;
+  padding: 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pn-stat-card:hover {
+  border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.08);
+}
+
+/* ─── TOAST NOTIFICATION ───────────────────────────────── */
+@keyframes pn-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pn-toast { animation: pn-slide-up 0.3s ease; }
+
+/* ─── BUTTON MICRO PRESS ───────────────────────────────── */
+button:active:not(:disabled) { transform: scale(0.97); }
+
+/* ─── SMOOTH MODAL ENTRANCE ────────────────────────────── */
+@keyframes pn-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pn-modal-enter {
+  animation: pn-modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards;
 }

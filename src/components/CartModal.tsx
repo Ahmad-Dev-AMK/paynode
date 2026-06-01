@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CartItem, Language, Currency, SiteSettings, Order, OrderItem } from '../types';
 import { translations } from '../lib/translations';
-import { X, Trash2, Plus, Minus, Send, MessageSquare, Landmark, PhoneCall } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Send, MessageSquare, Landmark, PhoneCall, RefreshCw } from 'lucide-react';
 import { dataService } from '../lib/supabase';
 
 interface CartModalProps {
@@ -196,10 +196,10 @@ Please send me the transfer details or wallet number to complete the payment.`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-950/80 backdrop-blur-sm pn-fade-in">
       {/* Drawer Card */}
       <div 
-        className="w-full max-w-lg bg-slate-900 h-full border-l border-slate-800 flex flex-col shadow-2xl overflow-y-auto"
+        className="pn-modal-enter w-full max-w-lg bg-slate-900 h-full border-l border-slate-800 flex flex-col shadow-2xl overflow-y-auto"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
       >
         {/* Drawer Header */}
@@ -453,18 +453,18 @@ Please send me the transfer details or wallet number to complete the payment.`;
                 <button
                   onClick={() => handleCheckout('whatsapp')}
                   disabled={isSubmitting}
-                  className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] active:translate-y-[1px] disabled:opacity-50 text-slate-950 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-[0_0_12px_rgba(37,211,102,0.15)]"
+                  className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] active:translate-y-[1px] disabled:opacity-60 text-slate-950 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-[0_0_12px_rgba(37,211,102,0.15)]"
                 >
-                  <MessageSquare size={14} fill="currentColor" />
-                  <span>{t.pay_via_whatsapp}</span>
+                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : <MessageSquare size={14} fill="currentColor" />}
+                  <span>{isSubmitting ? (lang === 'ar' ? 'جاري التجهيز...' : 'Processing...') : t.pay_via_whatsapp}</span>
                 </button>
                 <button
                   onClick={() => handleCheckout('telegram')}
                   disabled={isSubmitting}
-                  className="flex items-center justify-center gap-2 bg-[#0088cc] hover:bg-[#007cbd] active:translate-y-[1px] disabled:opacity-50 text-white px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-[0_0_12px_rgba(0,136,204,0.15)]"
+                  className="flex items-center justify-center gap-2 bg-[#0088cc] hover:bg-[#007cbd] active:translate-y-[1px] disabled:opacity-60 text-white px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-[0_0_12px_rgba(0,136,204,0.15)]"
                 >
-                  <Send size={14} />
-                  <span>{t.pay_via_telegram}</span>
+                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
+                  <span>{isSubmitting ? (lang === 'ar' ? 'جاري التجهيز...' : 'Processing...') : t.pay_via_telegram}</span>
                 </button>
               </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Product, Language, Currency } from '../types';
 import { translations } from '../lib/translations';
 import { ShieldCheck, Info, ShoppingCart, HelpCircle, Film, PlayCircle } from 'lucide-react';
@@ -41,9 +41,21 @@ export default function ProductCard({
   const title = lang === 'ar' ? product.title_ar : product.title_en;
   const description = lang === 'ar' ? product.description_ar : product.description_en;
 
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el) return;
+    if (el.complete) {
+      el.classList.add('loaded');
+    } else {
+      el.addEventListener('load', () => el.classList.add('loaded'));
+    }
+  }, [product.image_path]);
+
   return (
     <article 
-      className="relative flex flex-col rounded-xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-cyan-500/25 transition-all group paynode-glow hover:translate-y-[-2px] h-full"
+      className="pn-card-enter relative flex flex-col rounded-xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-cyan-500/25 transition-all group paynode-glow hover:translate-y-[-2px] h-full"
       id={`product-card-${product.id}`}
     >
       {/* Dynamic Media Container */}
@@ -53,9 +65,12 @@ export default function ProductCard({
       >
         {product.image_path ? (
           <img
+            ref={imgRef}
             src={product.image_path}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
+            className="pn-lazy w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             referrerPolicy="no-referrer"
           />
         ) : (
@@ -162,9 +177,9 @@ export default function ProductCard({
 
       {/* Floating Guarantee Policy Modal Overlay */}
       {showGuaranteeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in animate-duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div 
-            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl transition-transform"
+            className="pn-modal-enter w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl"
             dir={lang === 'ar' ? 'rtl' : 'ltr'}
           >
             {/* Header */}

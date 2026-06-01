@@ -89,6 +89,17 @@ export default function AdminDashboard({
     slug: ''
   });
 
+  // Auto-generate slug from Arabic or English name
+  const autoSlug = (name_ar: string, name_en: string) => {
+    const base = name_ar.trim() || name_en.trim();
+    // Keep Arabic chars + alphanumeric, replace spaces with hyphens
+    return base
+      .replace(/\s+/g, '-')
+      .replace(/[^\u0600-\u06FFa-zA-Z0-9-]/g, '')
+      .toLowerCase()
+      .slice(0, 40);
+  };
+
   // Supabase Link forms
   const [supaUrl, setSupaUrl] = useState(localStorage.getItem('paynode_supabase_url') || '');
   const [supaKey, setSupaKey] = useState(localStorage.getItem('paynode_supabase_anon_key') || '');
@@ -825,17 +836,29 @@ export default function AdminDashboard({
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Name AR */}
                         <div>
+                          <label className="text-[9px] font-bold text-slate-500 block mb-1">{lang === 'ar' ? 'الاسم عربي' : 'Arabic Name'}</label>
                           <input
                             type="text"
                             required
                             placeholder={t.cat_name_ar}
                             value={catForm.name_ar}
-                            onChange={(e) => setCatForm({ ...catForm, name_ar: e.target.value })}
+                            onChange={(e) => {
+                              const ar = e.target.value;
+                              setCatForm(prev => ({
+                                ...prev,
+                                name_ar: ar,
+                                // Auto-fill slug only if user hasn't manually edited it
+                                slug: prev.slug === autoSlug(prev.name_ar, prev.name_en)
+                                  ? autoSlug(ar, prev.name_en)
+                                  : prev.slug
+                              }));
+                            }}
                             className="w-full bg-slate-900 border border-slate-800 text-xs text-white rounded p-2"
                           />
                         </div>
                         {/* Name EN */}
                         <div>
+                          <label className="text-[9px] font-bold text-slate-500 block mb-1">{lang === 'ar' ? 'الاسم إنجليزي' : 'English Name'}</label>
                           <input
                             type="text"
                             required
@@ -845,19 +868,25 @@ export default function AdminDashboard({
                             className="w-full bg-slate-900 border border-slate-800 text-xs text-white rounded p-2"
                           />
                         </div>
-                        {/* Slug */}
+                        {/* Slug - supports Arabic */}
                         <div className="flex gap-2">
-                          <input
-                            type="text"
-                            required
-                            placeholder={t.cat_slug}
-                            value={catForm.slug}
-                            onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })}
-                            className="w-full bg-slate-900 border border-slate-800 text-xs text-white font-mono rounded p-2"
-                          />
+                          <div className="flex-1">
+                            <label className="text-[9px] font-bold text-slate-500 block mb-1">
+                              {lang === 'ar' ? 'الاسم الفريد للرابط (عربي أو إنجليزي)' : 'URL Slug (Arabic or English)'}
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder={lang === 'ar' ? 'مثال: العاب أو gaming' : 'e.g. gaming or العاب'}
+                              value={catForm.slug}
+                              onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })}
+                              className="w-full bg-slate-900 border border-slate-800 text-xs text-white font-mono rounded p-2"
+                            />
+                          </div>
                           <button
                             type="submit"
-                            className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs px-4 rounded transition-all cursor-pointer shrink-0"
+                            className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs px-4 rounded transition-all cursor-pointer shrink-0 self-end mb-0"
+                            style={{ height: 32 }}
                           >
                             {selectedCategoryId ? t.save : t.add}
                           </button>
@@ -1342,17 +1371,26 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
-                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase">PLATFORM VISITS</span>
-                      <span className="text-3xl font-black text-[#00E5FF] font-mono mt-1 block">{totalLogs}</span>
+                    <div className="pn-stat-card">
+                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase mb-2">إجمالي الزيارات</span>
+                      <span className="text-3xl font-black text-[#00E5FF] font-mono block">{totalLogs}</span>
+                      <div className="mt-2 h-1 bg-[#00E5FF]/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#00E5FF] rounded-full" style={{ width: '100%' }} />
+                      </div>
                     </div>
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
-                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase">DESKTOP VISITS</span>
-                      <span className="text-3xl font-black text-white font-mono mt-1 block">{desktopCount}</span>
+                    <div className="pn-stat-card">
+                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase mb-2">زيارات سطح المكتب</span>
+                      <span className="text-3xl font-black text-white font-mono block">{desktopCount}</span>
+                      <div className="mt-2 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-white/40 rounded-full" style={{ width: totalLogs > 0 ? `${(desktopCount/totalLogs)*100}%` : '0%' }} />
+                      </div>
                     </div>
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
-                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase">MOBILE VISITS</span>
-                      <span className="text-3xl font-black text-white font-mono mt-1 block">{mobileCount}</span>
+                    <div className="pn-stat-card">
+                      <span className="text-[9px] text-slate-500 block tracking-widest uppercase mb-2">زيارات الموبايل</span>
+                      <span className="text-3xl font-black text-white font-mono block">{mobileCount}</span>
+                      <div className="mt-2 h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#32CD32] rounded-full" style={{ width: totalLogs > 0 ? `${(mobileCount/totalLogs)*100}%` : '0%' }} />
+                      </div>
                     </div>
                   </div>
 

@@ -4,6 +4,8 @@ import ProductCard from './components/ProductCard';
 import ProductDetails from './components/ProductDetails';
 import CartModal from './components/CartModal';
 import AdminDashboard from './components/AdminDashboard';
+import PageLoader from './components/PageLoader';
+import { SkeletonGrid } from './components/SkeletonCard';
 import { Category, Product, SiteSettings, CartItem, Language, Currency } from './types';
 import { translations } from './lib/translations';
 import { dataService } from './lib/supabase';
@@ -190,6 +192,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#0f172a] text-slate-100" id="paynode-root-canvas">
+      
+      {/* Page preloader shown on initial data fetch */}
+      <PageLoader isVisible={isLoading} />
       
       {/* Dynamic Header Coordination Navigation bar */}
       <Header
@@ -451,11 +456,8 @@ export default function App() {
 
               {/* Grid content */}
               {isLoading ? (
-                /* Loading states fallback card */
-                <div className="py-24 text-center space-y-3 select-none">
-                  <RefreshCw className="animate-spin text-[#00E5FF] mx-auto" size={32} />
-                  <p className="text-xs text-slate-550 font-mono tracking-wide">CONNECTING TO GATEWAY NODE...</p>
-                </div>
+                /* Skeleton loading grid */
+                <SkeletonGrid count={6} />
               ) : sortedProducts.length === 0 ? (
                 /* Empty list */
                 <div className="py-20 text-center select-none bg-slate-900/10 border border-slate-850 p-8 rounded-2xl">
